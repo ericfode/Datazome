@@ -1,0 +1,15 @@
+//gg:{bruteTester: bruteTrainerTests.go, trainers.a: bruteTrainer.go}
+package main
+
+import(
+  "fmt"
+  "trainers"
+)
+func main () {
+//fmt.Printf (possibleGene[0].dataValue[0])
+     fmt.Printf("Hello, world\n")
+     train := *new(SimpleTrainer)
+     train.possibleGenes = make([]PossibleGene,0, 10000)
+     train.TrainOnDir("/usr/bin")
+     train.GetTrainedGenes ()
+}

@@ -1,0 +1,89 @@
+package main
+
+import(
+   "fmt"
+   "bytes"
+    "io"
+   "io/ioutil"
+   "os"
+   "strings"
+)
+     
+type PossibleGene struct {
+     dataValue [] byte
+     occuranceNumber int
+}
+
+type SimpleTrainer struct {
+     possibleGenes []PossibleGene 
+}
+
+func (simpleTrainer SimpleTrainer) Train (bytearray [] byte) {
+     
+     for i := 4; i < 30; i++ {
+	  for index := 0; index < len(bytearray); index++ {
+	       isThere := false
+	       for pindex := 0; pindex < len(simpleTrainer.possibleGenes); pindex++ {
+		    fmt.Println(bytearray[index:index+i])
+		    isThere = bytes.Equal(bytearray[index:index+i], simpleTrainer.possibleGenes[pindex].dataValue)
+			 if isThere == true {
+			      simpleTrainer.possibleGenes[pindex].occuranceNumber++
+			      continue
+			      }
+			 if isThere == false {
+			      simpleTrainer.possibleGenes = simpleTrainer.possibleGenes[0:len(simpleTrainer.possibleGenes)+1]
+			      simpleTrainer.possibleGenes[len(simpleTrainer.possibleGenes)-1].dataValue = bytearray[index:index+i]
+			      }
+			      
+	       }
+	       if isThere == false {
+			      fmt.Println("inoutsideloop" ,bytearray[index:index+i])
+			      simpleTrainer.possibleGenes = simpleTrainer.possibleGenes[0:len(simpleTrainer.possibleGenes)+1]
+			      simpleTrainer.possibleGenes[len(simpleTrainer.possibleGenes)-1].dataValue = bytearray[index:index+i]
+			      }
+
+	  
+	  }
+     }
+}
+
+//func compareArray(bytes []byte, index, i int) (isThere bool) { }
+func (trainer SimpleTrainer) TrainOnDir(dir string) (err os.Error){
+	  //open the directory
+	  files,err := ioutil.ReadDir(dir);
+	  if err != nil {
+	       return err
+	  }
+	  for x:= 0; x < 120; x++ { 
+	       fileDesc := files[x] 
+		    if fileDesc.IsRegular() {
+			 file,err := os.Open(strings.Join([]string{dir,fileDesc.Name},"/"),os.O_RDONLY,0666)
+			 if err != nil {
+			      fmt.Println("oops!!", err);
+			 }
+			 fReader := io.Reader(file)
+			 data, err := ioutil.ReadAll(fReader)
+			 trainer.Train(data)
+		    }
+	       }
+	  return
+}
+
+func (st SimpleTrainer) GetTrainedGenes () {
+     fmt.Print(len(st.possibleGenes))
+     for x := 0; x < len(st.possibleGenes); x++ {
+	  fmt.Print(st.possibleGenes[x], "a")
+     }
+     
+}
+
+     
+
+func main () {
+//fmt.Printf (possibleGene[0].dataValue[0])
+     fmt.Printf("Hello, world\n")
+     train := *new(SimpleTrainer)
+     train.possibleGenes = make([]PossibleGene,0, 10000)
+     train.TrainOnDir("/usr/bin")
+     train.GetTrainedGenes ()
+}

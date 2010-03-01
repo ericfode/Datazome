@@ -1,0 +1,12 @@
+all: ../../../../lib/genome/adders.a
+
+adders.8: appendAdder.go
+	8g -I ../../../../lib -o adders.8 appendAdder.go
+
+../../../../lib/genome/adders.a: adders.8
+	gopack gru ../../../../lib/genome/adders.a adders.8
+
+clean:
+	-rm *.8
+	-rm ../../../../lib/genome/adders.a
+

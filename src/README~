@@ -1,0 +1,9 @@
+Restructured files and moved stats to the stats folder because it is not a package
+................................................................................
+
+
+
+how to run.....
+make sure you have gg installed (if not go to manatlan.com/page/gg and get it)
+gg  makefile.gg
+

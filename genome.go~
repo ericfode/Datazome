@@ -1,0 +1,119 @@
+package genome
+
+import(
+   "fmt"
+   "io"
+   "io/ioutil"
+   "strings"
+   "os"
+   "gob"
+)
+
+//The Genome class
+//This will be the publicly accessable interface to the datazome project
+type Gene []byte
+type GeneAddress []byte // this should be the MD5 of data will be used lator
+//type GeneMap Gene[GeneAddress]
+
+
+type Genome struct {
+     geneMap []byte //this is a map into the file of where all the genes are needs to be saved every time the genome is closed
+     genomeRW io.ReadWriteSeeker
+     geneMapRW io.ReadWriteSeeker
+}
+
+
+//////GENOME IO///////////////////////////////////////////////////////////////
+ //create a genome that is saved to the writer 
+ //this should be the default func for a new user to call
+func NewGenome(genomeData,geneMapData io.ReadWriteSeeker)( genome *Genome,err os.Error,) {
+     genome = new(Genome);
+     genome.genomeRW = genomeData
+     err = nil
+     return
+     //may need to make a new map for the Genome struct
+}
+
+//loads a genome from a file
+//this should be the function that a returning user uses
+func LoadGenome(genomeData,geneMapData io.ReadWriteSeeker)(genome *Genome,err os.Error,){
+     genome = new(Genome)
+     genome.genomeRW = genomeData
+     genome.geneMapRW = geneMapData
+     decoder := gob.NewDecoder(genome.geneMapRW)
+     err = decoder.Decode(genome.geneMap)
+     return
+}
+
+//should be called at the end of use
+//saves all changes to the genome file
+func (genome *Genome) CloseGenome()(err os.Error){
+     _,err = genome.geneMapRW.Seek(0,0)
+     if err != nil {
+	  return
+     }
+     
+     encoder := gob.NewEncoder(genome.geneMapRW)
+     err = encoder.Encode(genome.geneMap)
+     if err != nil {
+	  return
+     }
+     genome = nil
+     return
+}
+/////END GENOMEIO///////////////////////////////////////////////////////////////////////
+
+//////GENOME TRAINING/////////////////////////////////////////////////////////////////
+//Trains a genome according to the contents of a directory
+func (genome *Genome) TrainOnDir(dir string)(err os.Error){
+     //open the directory
+     files,err := ioutil.ReadDir(dir);
+     if err != nil {
+	  return err
+     }
+     for _, fileDesc := range(files) {
+	  if fileDesc.IsRegular() {
+	       file,err := os.Open(strings.Join([]string{dir,dir},"/"),os.O_RDWR,0666)
+	       if err != nil {
+		    fmt.Println("oops!!", err);
+	       }
+	       fReader := io.Reader(file)
+	       genome.TrainOnData(fReader)
+
+	  }
+     }
+     return
+}
+
+//Trains a Genome to a stream of data
+func (genome *Genome) TrainOnData(reader io.Reader)(err os.Error);
+//adds gene to the hash table and the genome file
+func (genome *Genome) addGene(gene Gene);
+
+func (genome *Genome) getGene(address GeneAddress)(gene Gene,err os.Error);
+
+func (genome *Genome) removeGene(address GeneAddress)(err os.Error);
+
+type TGene struct {
+     data []byte
+     hash []byte // the data ran through a hashing algro
+     name string
+}
+///////////////////////////////////////////////////////////////////////////////////
+func (genome *Genome) NewTGene(data io.Reader,name string)(tGene TGene,err os.Error);
+
+func (genome *Genome) RecreateData(tGene TGene)(data []byte,err os.Error);
+
+
+type Trainer interface {
+     SaveTrainer(data Writer)(err error)
+     OpenTrainer(data Reader)(err error)
+     ResetTrainer()(err error)
+     Train(data io.Reader)(err error)
+     GetTrainedGenes()(err error, genes []Gene)
+}
+
+type StatTrainer struct {
+}
+
+

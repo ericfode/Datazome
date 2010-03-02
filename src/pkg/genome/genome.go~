@@ -169,7 +169,7 @@ func (genome *Genome) removeGene(address GeneAddress)(err os.Error){
 
 ///////////////////////////////////////////////////////////////////////////////////
 func (genome *Genome) NewTGene(data io.ReadSeeker, name string) (tGene TGene, err os.Error) {
-	geneAddressSet, unGeneSet, ordering, size := genome.finder.Find(data, genome.genomeRW,genome ,genome.geneMap,genome.indexer)
+	geneAddressSet, unGeneSet, ordering, size := genome.finder.Find(data, genome.genomeRW,*genome ,genome.geneMap,genome.indexer)
 	tGene = NewTGene(geneAddressSet, unGeneSet, ordering, size)
 	err = nil
 	return

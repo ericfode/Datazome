@@ -1,0 +1,9 @@
+this project is an experment in data compression by using the percipal that there are only so many valid combenations of information, so there if we can create a good database of hashes of those the we can greatly reduce the amount of data that needs to be sent to transfer data
+
+to run this really bad version of it
+cd ./src
+make all
+./genomeTester
+
+to configure the tester edit ./src/lib/genomeTester.go
+

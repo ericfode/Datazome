@@ -23,19 +23,22 @@ func NewGenomeTest() {
 	trainer := trainers.NewBruteTreeTrainer()
 	genomeTrainer := genome.Trainer(trainer)
 
-	genomeP, _ := genome.LoadGenome(io.ReadWriteSeeker(genomeFile),
+	genomeP, _ := genome.NewGenome(io.ReadWriteSeeker(genomeFile),
 		io.ReadWriteSeeker(indexFile),
 		genome.IndexerFunc(indexers.SmallIndexer),
 		genomeTrainer,
 		genome.FinderFunc(finders.HashFinder),
 		genome.AdderFunc(adders.AppendAdder))
-	//genomeP.TrainOnDir("/home/eric/win/PandoraFox/MP3/Test/")
+	err := genomeP.TrainOnDir("/bin/")
+	if err != nil {
+	     print(err.String())
+	}
 	genomeP.SaveGenome()
-	blender, _ := os.Open("/home/eric/win/PandoraFox/MP3/Strangefinger/Into The Blue/Strangefinger - Sleep (Radio Edit).mp3", os.O_RDONLY, 0666)
+	//blender, _ := os.Open("/home/eric/win/PandoraFox/MP3/Strangefinger/Into The Blue/Strangefinger - Sleep (Radio Edit).mp3", os.O_RDONLY, 0666)
 	//blenderTest, _ := os.Open("test.mp3", os.O_CREATE^os.O_RDWR, 0666)
-	tegeneFile, _ := os.Open("testTgene", os.O_CREATE^os.O_RDWR, 0666)
-	tGene, _ := genomeP.NewTGene(blender, "blender")
-	tGene.Save(tegeneFile)
+	//tegeneFile, _ := os.Open("testTgene", os.O_CREATE^os.O_RDWR, 0666)
+	//tGene, _ := genomeP.NewTGene(blender, "blender")
+	//tGene.Save(tegeneFile)
 	//tGene := genome.LoadTGene(tegeneFile)
 	//data, _ := genomeP.RecreateData(*tGene)
 	//blenderTest.Write(data)

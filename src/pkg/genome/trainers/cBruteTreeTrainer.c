@@ -11,14 +11,17 @@ typedef unsigned int uint;
 #define MinLen 6
 #define MaxDepth 6
 
+//used in tree
 struct genePart{
 	short DataValue;
 	uint HitNumber;
 	GeneNode Next;
 };
 
+//used in list
 struct geneData{
 	short* DataValue;
+	uint len;
 	uint HitNumber;
 };
 
@@ -31,17 +34,33 @@ struct geneNode{
 
 struct geneDataSlice{
         uint len;
-	*GeneData data;
-}
+	GeneData* Data;
+};
 
 struct bruteTreeTrainer{
 	GeneNode root;
 	GeneDataSlice curHighest;
 };
 
+int cmpGeneData(GeneData right, GeneData left){
+     int index= 0;
+     if (right->len != left->len){  return 0;  }
+     for( index=0; index < right->len; index++){
+	  if(right->DataValue[index] != left->DataValue[index]){ return 0; }
+     }
+     return 1;
+}
+
 GeneDataSlice newGDS(int size){
-     GeneDataSlice gds = malloc(sizeof(geneDataSlice));
-     gds->data = malloc(sizeof(GeneData)*size);
+     GeneDataSlice gds = malloc(sizeof(GeneDataSlice*));
+     gds->Data = malloc(sizeof(GeneData)*size);
+     return gds;
+}
+
+GeneData newGD(int size){
+     GeneData GD = malloc(sizeof(GeneData*));
+     GD->len = size;
+     return GD;
 }
 
 GeneNode newTree() {
@@ -84,9 +103,67 @@ int numChildren(GeneNode gn) {
      return num;
 }
 
-GeneDataSlice joinGeneData(GeneDataSlice right, GeneDataSlice left) {
-     GeneDataSlice = NewGDS(right->len+left->len);
-     for(index =0; index < right->len; curGP = right->data[index], index++ ){
-	  newGene
-	
+GeneDataSlice mergeGeneData(GeneDataSlice right, GeneDataSlice left) {
+ 
+     int dups = 0;
+     GeneData curGDl = 0;
+     GeneData curGDr = 0;
+     //first pass to determine the size of the new list
+     //for ever item on the right side
+     int indexl = 0;
+     int indexr = 0;
      
+     for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr], indexr++ ){
+	  //for every item on the left side
+	  for(indexl = 0; indexl < left->len; curGDl = left->Data[indexl], indexl++ ){
+	       //if the byte slices are equal
+	       if(1 == cmpGeneData(curGDr,curGDl)){
+		    //add anouther tally to the dups list
+		    dups++;
+		    break;
+	       }
+	  }
+     }
+     
+     GeneDataSlice GDS = newGDS(right->len+left->len -dups);
+     //copy the right side over
+     for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr], indexr++ ){
+	  GDS->Data[indexr] = curGDr;
+     }
+     
+     //current offset of left side
+     int tally = 0;
+     //for every item on the left side check to see if there is already an equal in the list
+     for(indexl = 0; indexl < left->len; curGDl = left->Data[indexl]){
+	  indexl++;
+	  int matched = 0;
+          for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr] ){
+	       indexr++;
+	       if(1 == cmpGeneData(curGDr,curGDl)){
+		    GDS->Data[indexr]->HitNumber += curGDl->HitNumber;
+		    matched = 1;
+		    break;
+	       }
+	  }
+	  if (matched != 1) {
+	       //tally starts at zero because the len of the right will be one index of the
+	       //end of the list
+	       GDS->Data[right->len+tally] = curGDl;
+	       tally++;
+	  }
+     }
+     return GDS;
+}
+
+GeneDataSlice collapseLeafs(GeneNode gn) {
+     //Create a geneDataSlice to hold the results
+     GeneDataSlice GDS;
+     
+     if(numChildren(gn) == 0) {
+	  GDS = newGDS(1);
+	  GDS->Data[0]->HitNumber = gn->HitNumber;
+	  GDS->Data[0] = newGD(gn->Depth);
+	  GDS->Data[0]->DataValue[gn->Depth-1] = gn->DataValue;
+	  return GDS;
+     }
+}

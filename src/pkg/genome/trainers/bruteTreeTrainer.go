@@ -57,6 +57,7 @@ func newTree() *GeneNode {
 const MinLin int = 6
 const NextNodeBound int = 2
 const MaxDepth int = 10
+
 //creates a new geneNode wit b as it counter
 func contains(i int, slice []int) bool {
 	for _, cur := range (slice) {
@@ -96,6 +97,7 @@ func (gn *GeneNode) numChildern() (num int) {
 
 type GeneDataSlice []GeneData
 
+//joins two GeneData Slices
 func join(right, left []GeneData) []GeneData {
 	//!fmt.Print("j")
 	newGeneData := make([]GeneData, len(right)+len(left))
@@ -109,6 +111,7 @@ func join(right, left []GeneData) []GeneData {
 	return right
 }
 
+//prunes based on len
 func shrink(slice []GeneData,minLen int) []GeneData{
 	newCount := 0
 	for _,item := range(slice){

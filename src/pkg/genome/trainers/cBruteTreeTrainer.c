@@ -29,11 +29,20 @@ struct geneNode{
 	GenePart GeneParts[256];
 };
 
+struct geneDataSlice{
+        uint len;
+	*GeneData data;
+}
+
 struct bruteTreeTrainer{
 	GeneNode root;
 	GeneDataSlice curHighest;
 };
 
+GeneDataSlice newGDS(int size){
+     GeneDataSlice gds = malloc(sizeof(geneDataSlice));
+     gds->data = malloc(sizeof(GeneData)*size);
+}
 
 GeneNode newTree() {
 	GeneNode root = malloc(sizeof(GeneNode));
@@ -65,4 +74,19 @@ int numLeafs(GeneNode gn) {
 	return total;
 }
 
+int numChildren(GeneNode gn) {
+     int num = 0;
+     for(int i = 0; i < 256; i++){
+	  if( gn->GeneParts[i] != 0) {
+	       num++;
+	  }
+     }
+     return num;
+}
+
+GeneDataSlice joinGeneData(GeneDataSlice right, GeneDataSlice left) {
+     GeneDataSlice = NewGDS(right->len+left->len);
+     for(index =0; index < right->len; curGP = right->data[index], index++ ){
+	  newGene
 	
+     

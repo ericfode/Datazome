@@ -171,7 +171,6 @@ func merge(right, left []GeneData) []GeneData {
 }
 
 func (gn *GeneNode) collapseLeafs() []GeneData {
-	//for each child
 	geneData := make([]GeneData, 0)
 	//!fmt.Println("depth:",gn.Depth, "numChildern:", gn.numChildern(),"numLeafs:", gn.numLeafs())
 	//if this is a leaf

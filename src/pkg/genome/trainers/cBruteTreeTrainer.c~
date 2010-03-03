@@ -53,7 +53,7 @@ int cmpGeneData(GeneData right, GeneData left){
 
 GeneDataSlice newGDS(int size){
      GeneDataSlice gds = malloc(sizeof(GeneDataSlice*));
-     gds->data = malloc(sizeof(GeneData)*size);
+     gds->Data = malloc(sizeof(GeneData)*size);
      return gds;
 }
 
@@ -113,9 +113,9 @@ GeneDataSlice mergeGeneData(GeneDataSlice right, GeneDataSlice left) {
      int indexl = 0;
      int indexr = 0;
      
-     for(indexr = 0; indexr < right->len; curGDr = right->data[indexr], indexr++ ){
+     for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr], indexr++ ){
 	  //for every item on the left side
-	  for(indexl = 0; indexl < left->len; curGDl = left->data[indexl], indexl++ ){
+	  for(indexl = 0; indexl < left->len; curGDl = left->Data[indexl], indexl++ ){
 	       //if the byte slices are equal
 	       if(1 == cmpGeneData(curGDr,curGDl)){
 		    //add anouther tally to the dups list
@@ -127,20 +127,20 @@ GeneDataSlice mergeGeneData(GeneDataSlice right, GeneDataSlice left) {
      
      GeneDataSlice GDS = newGDS(right->len+left->len -dups);
      //copy the right side over
-     for(indexr = 0; indexr < right->len; curGDr = right->data[indexr], indexr++ ){
-	  GDS->data[indexr] = curGDr;
+     for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr], indexr++ ){
+	  GDS->Data[indexr] = curGDr;
      }
      
      //current offset of left side
      int tally = 0;
      //for every item on the left side check to see if there is already an equal in the list
-     for(indexl = 0; indexl < left->len; curGDl = left->data[indexl]){
+     for(indexl = 0; indexl < left->len; curGDl = left->Data[indexl]){
 	  indexl++;
 	  int matched = 0;
-          for(indexr = 0; indexr < right->len; curGDr = right->data[indexr] ){
+          for(indexr = 0; indexr < right->len; curGDr = right->Data[indexr] ){
 	       indexr++;
 	       if(1 == cmpGeneData(curGDr,curGDl)){
-		    GDS->data[indexr]->HitNumber += curGDl->HitNumber;
+		    GDS->Data[indexr]->HitNumber += curGDl->HitNumber;
 		    matched = 1;
 		    break;
 	       }
@@ -148,7 +148,7 @@ GeneDataSlice mergeGeneData(GeneDataSlice right, GeneDataSlice left) {
 	  if (matched != 1) {
 	       //tally starts at zero because the len of the right will be one index of the
 	       //end of the list
-	       GDS->data[right->len+tally] = curGDl;
+	       GDS->Data[right->len+tally] = curGDl;
 	       tally++;
 	  }
      }
@@ -161,9 +161,9 @@ GeneDataSlice collapseLeafs(GeneNode gn) {
      
      if(numChildren(gn) == 0) {
 	  GDS = newGDS(1);
-	  GDS->data[0]->HitNumber = gn->HitNumber;
-	  GDS->data[0] = newGD(gn->Depth);
-	  GDS->data[0]->dataValue[gn->Depth-1] = gn->DataValue;
+	  GDS->Data[0]->HitNumber = gn->HitNumber;
+	  GDS->Data[0] = newGD(gn->Depth);
+	  GDS->Data[0]->DataValue[gn->Depth-1] = gn->DataValue;
 	  return GDS;
      }
 }

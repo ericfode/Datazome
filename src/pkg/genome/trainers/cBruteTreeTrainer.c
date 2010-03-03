@@ -159,11 +159,29 @@ GeneDataSlice collapseLeafs(GeneNode gn) {
      //Create a geneDataSlice to hold the results
      GeneDataSlice GDS;
      
+     //if this is a leaf
      if(numChildren(gn) == 0) {
+	  //then make a new geneDataSlice 
 	  GDS = newGDS(1);
 	  GDS->Data[0]->HitNumber = gn->HitNumber;
 	  GDS->Data[0] = newGD(gn->Depth);
 	  GDS->Data[0]->DataValue[gn->Depth-1] = gn->DataValue;
 	  return GDS;
      }
+     
+     //if this is a brach
+     //join all of the leafs together
+     //add this data value to the depth place in all of the slices
+     int index =0
+     for(index =0; index < 256; index++){
+	  //select the child
+	  child = gn->GeneParts[index];
+	  if(child->Next != 0) {
+	       GDS = join(GDS,collapseLeafs(child->Next);
+	  }
+     }
+     if gn->Depth >0 {
+	  
+     
+     //
 }

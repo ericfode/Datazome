@@ -328,7 +328,7 @@ func (bt *BruteTreeTrainer) Train(trainingData []byte) {
 	fmt.Println(len(trainingData))
 	//from the minimum match size to the max ma
 	for index := 0; index < len(trainingData); index++ {
-		if bt.root.HitNumber > 50000 {
+		if bt.root.HitNumber > 70000 {
 			go GeneDataSlice(bt.curHighest).Stats()
 			bt.curHighest = merge(bt.curHighest, shrink(bt.nodeSet(),MinLin))
 			bt.root.deleteLeafs(bt.root)

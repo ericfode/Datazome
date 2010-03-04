@@ -13,21 +13,21 @@ typedef unsigned int uint;
 
 //used in tree
 struct genePart{
-	short DataValue;
+	ushort DataValue;
 	uint HitNumber;
 	GeneNode Next;
 };
 
 //used in list
 struct geneData{
-	short* DataValue;
+	ushort* DataValue;
 	uint len;
 	uint HitNumber;
 };
 
 struct geneNode{
-	short DataValue;
-	short Depth;
+	ushort DataValue;
+	ushort Depth;
 	uint HitNumber;
 	GenePart GeneParts[256];
 };
@@ -61,6 +61,12 @@ GeneData newGD(int size){
      GeneData GD = malloc(sizeof(GeneData*));
      GD->len = size;
      return GD;
+}
+
+GeneNode newGN(){
+     GeneNode GN = malloc(sizeof(GeneNode*));
+     GN->HitNumber = 0;
+     return GN;
 }
 
 GeneNode newTree() {
@@ -102,7 +108,17 @@ int numChildren(GeneNode gn) {
      }
      return num;
 }
-
+GeneDataSlice joinGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
+     GeneDataSlice GDS = newGDS(right->len+left->len);
+     int index = 0; 
+     for( index= 0 ; index < right->len; index++) {
+	  GDS->Data[index] = right->Data[index];
+     }
+     for( index = 0; index < left ->len; index++) {
+	  GDS->Data[index+right->len] = left->Data[index];
+     }
+     return GDS;
+}
 GeneDataSlice mergeGeneData(GeneDataSlice right, GeneDataSlice left) {
  
      int dups = 0;
@@ -159,11 +175,67 @@ GeneDataSlice collapseLeafs(GeneNode gn) {
      //Create a geneDataSlice to hold the results
      GeneDataSlice GDS;
      
+     //if this is a leaf
      if(numChildren(gn) == 0) {
+	  //then make a new geneDataSlice 
 	  GDS = newGDS(1);
 	  GDS->Data[0]->HitNumber = gn->HitNumber;
 	  GDS->Data[0] = newGD(gn->Depth);
 	  GDS->Data[0]->DataValue[gn->Depth-1] = gn->DataValue;
 	  return GDS;
+     }
+     
+     //if this is a brach
+     //join all of the leafs together
+     //add this data value to the depth place in all of the slices
+     int index =0;
+     for(index =0; index < 256; index++){
+	  //select the child
+	  GenePart child = gn->GeneParts[index];
+	  if(child->Next != 0) {
+	       GDS = joinGeneDataSlice(GDS,collapseLeafs(child->Next));
+	  }
+     }
+     //if this is not a leaf
+     if( gn->Depth > 0 ){
+	  //for every item in the current GeneDataSlice, add this nodes data value to the datavalues that are stored
+	  for (index = 0; index < GDS->len; index++){
+	       GDS->Data[index]->DataValue[gn->Depth-1]= gn->DataValue;
+	  }
+     }
+     return GDS;
+}
+
+//ushort is named b because in go a ushort is also a byte and this ushort is being used as a byte
+void addNode(GeneNode gn,ushort b){
+     gn->GeneParts[b]->Next = newGN();
+     gn->GeneParts[b]->Next->Depth = gn->Depth + 1;
+     gn->GeneParts[b]->Next->DataValue = b;
+     int index = 0;
+     //initilize the new gene GeneParts
+     for(index = 0; index < 256; index++) {
+	  gn->GeneParts[b]->Next->GeneParts[index]->DataValue = index;
+	  gn->GeneParts[b]->Next->GeneParts[index]->HitNumber = 0;
+     }
+     return;
+}
+
+void addByteSlice(GeneNode gn, ushort* b,ushort* end) {
+     GeneNode curGN = gn;
+     while(1){
+	  curGN->GeneParts[b[0]]->HitNumber++;
+	  curGN->HitNumber++;
+	  
+	  if( curGN->GeneParts[b[0]]->HitNumber == NextNodeBound){
+	       addNode(curGN,b);
+	  }
+	  if( curGN->GeneParts[b[0]]->HitNumber > NextNodeBound) {
+	       if (b != end && curGN->Depth < MaxDepth) {
+		    curGN = curGN->GeneParts[b[0]]->Next;
+		    b++;
+		    continue;
+	       }
+	  }
+	  return;
      }
 }

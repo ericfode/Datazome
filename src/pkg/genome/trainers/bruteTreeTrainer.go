@@ -214,7 +214,7 @@ func (gn *GeneNode) deleteLeafs(root *GeneNode) {
 		if child.Next != nil {
 			child.Next.deleteLeafs(root)
 			//!	fmt.Println("cumlitive geneData:", geneData)
-			gn.GeneParts[index].Next = nil
+			child.Next = nil
 		}
 	}
 	return
@@ -244,7 +244,7 @@ func (gn *GeneNode) AddByte(b []byte) {
 	for {
 		curGN.GeneParts[b[0]].HitNumber++
 		curGN.HitNumber++
-
+		
 		switch {
 		//if the hit number of a genePart is enugh to create a new node
 		case curGN.GeneParts[b[0]].HitNumber == uint16(NextNodeBound):

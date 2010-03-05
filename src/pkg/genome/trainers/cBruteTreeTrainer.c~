@@ -227,7 +227,7 @@ void addByteSlice(GeneNode gn, ushort* b,ushort* end) {
 	  curGN->HitNumber++;
 	  
 	  if( curGN->GeneParts[b[0]]->HitNumber == NextNodeBound){
-	       addNode(curGN,b);
+	       addNode(curGN,b[0]);
 	  }
 	  if( curGN->GeneParts[b[0]]->HitNumber > NextNodeBound) {
 	       if (b != end && curGN->Depth < MaxDepth) {

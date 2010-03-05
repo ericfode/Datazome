@@ -1,10 +1,13 @@
 #include "stdlib.h"
+#include "stdio.h"
+#include "malloc.h"
 
 typedef struct genePart* GenePart;
 typedef struct geneData* GeneData;
 typedef struct geneNode* GeneNode;
 typedef struct bruteTreeTrainer* BruteTreeTrainer;
 typedef struct geneDataSlice* GeneDataSlice;
+typedef struct trainingData* TrainingData;
 typedef unsigned int uint;
 
 #define NextNodeBound 2
@@ -42,6 +45,14 @@ struct bruteTreeTrainer{
 	GeneDataSlice curHighest;
 };
 
+struct trainingData{
+        ushort* Data;
+	uint len;
+}
+uint64 totalMem = 0;
+void* CountedMalloc(uint size) { 
+     totalMem += size;
+     return malloc(size);
 int cmpGeneData(GeneData right, GeneData left){
      int index= 0;
      if (right->len != left->len){  return 0;  }
@@ -238,4 +249,56 @@ void addByteSlice(GeneNode gn, ushort* b,ushort* end) {
 	  }
 	  return;
      }
+}
+
+void PrintStats(GeneDataSlice gd){
+     float avarageLen = 0;
+     int maxLen = 0;
+     int minLen = 500000;
+     int maxO = 0;
+     int minO = 500000;
+     float avarageO = ;
+     
+     int index = 0;
+     for(index = 0; index < gd->len; index++){
+	  GenePart cur= gd->Data[index];
+	  if (cur->DataValue->len > maxLen) {
+	       maxLen = cur->DataValue->len;
+	  }
+	  if (cur->DataValue->len < minLen) {
+	       minLen = cur->DataValue->len;
+	  }
+	  avarageLen += cur->DataValue->len;
+	  
+	  if (cur->HitNumber > maxO) {
+	       maxO = cur->HitNumber;
+	  }
+	  if (cur->HitNumber > minO) {
+	       minO = cur->HitNumber;
+	  }
+	  avarageO += cur->HitNumber;
+     }
+     avarageLen /= gd->len;
+     avarageO /= gd->len;
+     printf("\n");
+     
+     printf("min Length: %d max Length: %d a Length: %d min Hits: %d max Hits: %d a Hits: %d total: %d"
+     , minLen, maxLen,maxLen,avarageLen,minO,maxO,avarageO,len(gd));
+	
+     
+
+void BTTrain(BruteTreeTrainer btt, TrainingData td){
+     printf("starting Train \n");
+     int index = 0;
+     int counter = 0;
+     for( index = 0 ; index < td->len; index++){
+	  if(counter == 60000){
+	       counter = 0;
+	       PrintStats(btt->root);
+	  }
+	  counter++;
+	  AddByte(bt->root,td->Data+index,td->Data+td->len);
+     }
+     return;
+     
 }

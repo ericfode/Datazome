@@ -171,7 +171,6 @@ func merge(right, left []GeneData) []GeneData {
 }
 
 func (gn *GeneNode) collapseLeafs() []GeneData {
-	//for each child
 	geneData := make([]GeneData, 0)
 	//!fmt.Println("depth:",gn.Depth, "numChildern:", gn.numChildern(),"numLeafs:", gn.numLeafs())
 	//if this is a leaf
@@ -245,7 +244,7 @@ func (gn *GeneNode) AddByte(b []byte) {
 	for {
 		curGN.GeneParts[b[0]].HitNumber++
 		curGN.HitNumber++
-
+		
 		switch {
 		//if the hit number of a genePart is enugh to create a new node
 		case curGN.GeneParts[b[0]].HitNumber == uint16(NextNodeBound):

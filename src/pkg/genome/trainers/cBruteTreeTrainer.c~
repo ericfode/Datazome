@@ -55,7 +55,12 @@ unsigned long long totalMem;
 void* CountedMalloc(uint size) { 
      totalMem += size;
     // printf("mem allocted: %d total mem: %lld\n",size,totalMem);
-     return malloc(size);
+    void* newptr = malloc(size);
+    if (newptr == 0){
+	 printf("out of memory\n");
+	 exit(1);
+    }
+     return newptr;
 }
 
 void CountedFree(void* ptr) {
@@ -216,13 +221,12 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
     printf("%d Dups\n",dups);
     
     
-     GeneDataSlice GDS = newGDS(right->len+left->len -dups -1);
+     GeneDataSlice GDS = newGDS((right->len+left->len) -dups);
      //copy the right side over
      for(indexr = 0; indexr < right->len; indexr++){
 	  curGDr = right->Data[indexr];
 	  GDS->Data[indexr] = curGDr;
      }
-     CountedFree(right);
      
      //verifier
 //      for(indexr = 0; indexr < GDS->len; curGDr = GDS->Data[indexr]){
@@ -233,7 +237,7 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
      
      printf("copying leftside\n");
      //current offset of left side
-     int tally = 0;
+     int offset = 0;
      //for every item on the left side check to see if there is already an equal in the list
      for(indexl = 0; indexl < left->len; indexl++){
 	  curGDl = left->Data[indexl];
@@ -251,13 +255,16 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
 	  if (matched != 1) {
 	       //tally starts at zero because the len of the right will be one index of the
 	       //end of the list
-	       GDS->Data[right->len+tally] = curGDl;
-	       printf("coping leftside len:%d data:%d\n",curGDl->len, curGDl->DataValue);
-	       tally++;
+	       GDS->Data[right->len+offset] = curGDl;
+	//       printf("coping leftside len:%d data:%d index:%d\n",curGDl->len, curGDl->DataValue, right->len+offset);
+	       offset++;
 	  }	  
      }
 
+  
+     GDS->len = right->len+(offset-1);
      printf("merged len %d\n", GDS->len);
+     CountedFree(right);
      CountedFree(left);
      return GDS;
 }
@@ -374,7 +381,7 @@ void PrintStats(GeneDataSlice gd){
      
      int index = 0;
      for(index = 0; index < gd->len; index++){
-	//  printf("on index:%d addresss:%d \n", index,gd->Data[index]);
+	 // printf("on index:%d addresss:%d \n", index,gd->Data[index]);
 	  GeneData cur= gd->Data[index];
 	  if (cur->len > maxLen) {
 	       maxLen = cur->len;
@@ -406,15 +413,15 @@ void BTTrain(BruteTreeTrainer bt, TrainingData td){
      for( index = 0 ; index < td->len; index++){
 	 // printf("%d\n",counter);
 	  addByteSlice(bt->root,&(td->Data[index]),td->Data+td->len);
-	  if(index % 5000 == 0 && index != 0){
+	  if(index % 50000 == 0 && index != 0){
 	       printf("collapsing\n");
 	       GeneDataSlice temp = collapseLeafs(bt->root);
 	       printf("trying to merge\n");
 	       bt->curHighest = mergeGeneDataSlice(temp,bt->curHighest );
 	       printf("curHighest len:%d\n",bt->curHighest->len);
 	       PrintStats(bt->curHighest);
-	       deleteLeafs(bt->root);
-	       CountedFree(bt->root);
+	      // deleteLeafs(bt->root);
+	     //  CountedFree(bt->root);
 	       bt->root= newTree();
 	  }
      }

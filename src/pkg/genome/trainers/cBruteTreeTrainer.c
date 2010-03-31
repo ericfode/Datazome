@@ -12,7 +12,7 @@ typedef unsigned int uint;
 
 #define NextNodeBound 2
 #define MinLen 6
-#define MaxDepth 50
+#define MaxDepth 20
 
 //used in tree
 struct genePart{
@@ -52,9 +52,9 @@ struct trainingData{
      
 unsigned long long totalMem;
 
-void* CountedMalloc(uint size) { 
+void* CountedMalloc(int size) { 
      totalMem += size;
-    // printf("mem allocted: %d total mem: %lld\n",size,totalMem);
+   //  printf("mem allocted: %d total mem: %lld\n",size,totalMem);
     void* newptr = malloc(size);
     if (newptr == 0){
 	 printf("out of memory\n");
@@ -68,7 +68,11 @@ void CountedFree(void* ptr) {
      free(ptr);
 }
 
-
+void FreeGD(GeneData gd){
+     CountedFree(gd->DataValue);
+     CountedFree(gd);
+}
+     
 int cmpGeneData(GeneData right, GeneData left){
      int index= 0;
      if (right->len != left->len){  return 0;  }
@@ -105,16 +109,20 @@ TrainingData newTD(){
      TD->len = 0;
      return TD;
 }
-
+int d =0;
 GeneNode newTree() {
-       // printf("creating tree\n");
+        //printf("creating tree\n");
 	GeneNode root = CountedMalloc(sizeof(GeneNode*));
+	//printf("setting vars\n");
 	root->Depth = 0;
 	root->DataValue = 0;
 	root->HitNumber = 0;
 	uint index =0;
-	GenePart curGenePart=0;
+	//printf("zeroing\n");
+	root->GeneParts = 0;
+	//printf("allocaing geneparts\n");
 	root->GeneParts = CountedMalloc(sizeof(GenePart)*256);
+	//printf("allocated Genepart\n");
 	for(index =0; index < 256; index++){
 	       
 		root->GeneParts[index]= CountedMalloc(sizeof(GenePart*));
@@ -126,12 +134,13 @@ GeneNode newTree() {
 		root->GeneParts[index]->Next =0;
 	//	printf("treeIndex : %d, TreeHitnumber: %d\n",index,root->GeneParts[index]->HitNumber);
 	}
-	
-// 	for(index =0; index < 256; index++){
-// 	//	printf("treeIndex : %d, TreeHitnumber: %d\n",index,root->GeneParts[index]->HitNumber);
-// 	}
-	//printf("tree ready\n");
-	
+	 // if(d==1){
+	//  for(index =0; index < 256; index++){
+	//	    printf("treeIndex : %d, TreeHitnumber: %d\n",index,root->GeneParts[index]->HitNumber);
+	  
+	//  }
+	//  printf("tree ready\n");
+	//}
 	return root;
 }
 void testTree(GeneNode gn){
@@ -153,6 +162,18 @@ BruteTreeTrainer newBTT(){
      return btt;
 }
 
+int numChildren(GeneNode gn) {
+     int num = 0;
+     int i =0;
+     //printf("in numChildren\n");
+     for(i = 0; i < 256; i++){
+	  if( gn->GeneParts[i]->Next != 0) {
+	       num++;
+	  }
+     }
+     return num;
+}
+
 int numLeafs(GeneNode gn) {
 	int tally, index, total;
 	GenePart curGP;
@@ -169,17 +190,7 @@ int numLeafs(GeneNode gn) {
 	return total;
 }
 
-int numChildren(GeneNode gn) {
-     int num = 0;
-     int i =0;
-     //printf("in numChildren\n");
-     for(i = 0; i < 256; i++){
-	  if( gn->GeneParts[i]->Next != 0) {
-	       num++;
-	  }
-     }
-     return num;
-}
+
 //destructive to both the left and right pointers
 GeneDataSlice joinGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
      //printf("joining\n");
@@ -200,6 +211,7 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
      int dups = 0;
      GeneData curGDl = 0;
      GeneData curGDr = 0;
+     curGDr = CountedMalloc(sizeof(GeneData*));
      //first pass to determine the size of the new list
      //for ever item on the right side
      int indexl = 0;
@@ -224,8 +236,7 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
      GeneDataSlice GDS = newGDS((right->len+left->len) -dups);
      //copy the right side over
      for(indexr = 0; indexr < right->len; indexr++){
-	  curGDr = right->Data[indexr];
-	  GDS->Data[indexr] = curGDr;
+	  (GDS->Data[indexr]) = (right->Data[indexr]);
      }
      
      //verifier
@@ -246,8 +257,6 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
 	       curGDr = GDS->Data[indexr];
 	       if(1 == cmpGeneData(curGDr,curGDl)){
 		    GDS->Data[indexr]->HitNumber += curGDl->HitNumber;
-		    CountedFree(curGDl->DataValue);
-		    CountedFree(curGDl);
 		    matched = 1;
 		    break;
 	       }
@@ -255,15 +264,20 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
 	  if (matched != 1) {
 	       //tally starts at zero because the len of the right will be one index of the
 	       //end of the list
-	       GDS->Data[right->len+offset] = curGDl;
-	//       printf("coping leftside len:%d data:%d index:%d\n",curGDl->len, curGDl->DataValue, right->len+offset);
+	       
+	       GDS->Data[right->len+offset] = CountedMalloc(sizeof(GeneData*));
+	       (GDS->Data[right->len+offset]) = (curGDl);
+	       printf("coping leftside len:%d data:%d index:%d\n",curGDl->len, curGDl->DataValue, right->len+offset);
 	       offset++;
+	    
 	  }	  
      }
 
   
      GDS->len = right->len+(offset-1);
      printf("merged len %d\n", GDS->len);
+     //FreeGD(curGDl);
+     //FreeGD(curGDr);
      CountedFree(right);
      CountedFree(left);
      return GDS;
@@ -274,6 +288,7 @@ GeneDataSlice collapseLeafs(GeneNode gn) {
      
     // printf("in collapse leafs\n");
      //if this is a leaf
+
      if(numChildren(gn) == 0) {
 	  //create a GDS with room for one node
 	  GeneDataSlice GDS = newGDS(1);
@@ -335,28 +350,37 @@ void deleteLeafs(GeneNode node){
 }
 //byte is named b because in go a byte is also a byte and this byte is being used as a byte
 void addNode(GeneNode gn,byte b){
+    // printf("testing next\n");
+     gn->GeneParts[b]->Next = 0;
+    // printf("creating new tree for node\n");
+     
      gn->GeneParts[b]->Next = newTree();
+     //printf("doing depth calc\n");
      gn->GeneParts[b]->Next->Depth = gn->Depth + 1;
+     //printf("doing datavalue clac\n");
      gn->GeneParts[b]->Next->DataValue = b;
      int index = 0;
      //initilize the new gene GeneParts
+     //printf("doing initilzation of geneparts\n");
      for(index = 0; index < 256; index++) {
 	  gn->GeneParts[b]->Next->GeneParts[index]->DataValue = index;
 	  gn->GeneParts[b]->Next->GeneParts[index]->HitNumber = 0;
      }
+     
      return;
 }
 
 void addByteSlice(GeneNode gn, byte* b,byte* end) {
      GeneNode curGN = gn;
-     //printf("adding byte:%d\n",b[0]);
+   //  printf("adding byte:%d\n",b[0]);
      while(1){
 	  curGN->GeneParts[b[0]]->HitNumber++;
 	  curGN->HitNumber++;
-	  //printf("added byte.. hitnumber:%d\n",curGN->GeneParts[b[0]]->HitNumber);
+	//  printf("added byte.. hitnumber:%d\n",curGN->GeneParts[b[0]]->HitNumber);
 	  if( curGN->GeneParts[b[0]]->HitNumber == NextNodeBound){
-	   //    printf("adding node\n");
+//	       printf("adding node\n");
 	       addNode(curGN,b[0]);
+	  //     printf("added node\n");
 	  }
 	  if( curGN->GeneParts[b[0]]->HitNumber > NextNodeBound) {
 	       if (b != end && curGN->Depth < MaxDepth) {
@@ -365,7 +389,7 @@ void addByteSlice(GeneNode gn, byte* b,byte* end) {
 		    continue;
 	       }
 	  }
-	 // printf("finished addByteSlice\n");
+	//  printf("finished addByteSlice\n");
 	  return;
      }
 }
@@ -381,7 +405,7 @@ void PrintStats(GeneDataSlice gd){
      
      int index = 0;
      for(index = 0; index < gd->len; index++){
-	 // printf("on index:%d addresss:%d \n", index,gd->Data[index]);
+	//  printf("on index:%d addresss:%d \n", index,gd->Data[index]);
 	  GeneData cur= gd->Data[index];
 	  if (cur->len > maxLen) {
 	       maxLen = cur->len;
@@ -404,6 +428,7 @@ void PrintStats(GeneDataSlice gd){
      printf("\n");
      printf("min Length: %d max Length: %d a Length: %f min Hits: %d max Hits: %d a Hits: %f total: %d\n"
      , minLen, maxLen,avarageLen,minO,maxO,avarageO,gd->len);
+     d= 1;
      return;
 }
 
@@ -411,15 +436,15 @@ void BTTrain(BruteTreeTrainer bt, TrainingData td){
      printf("starting Train \n");
      int index;
      for( index = 0 ; index < td->len; index++){
-	 // printf("%d\n",counter);
+	 // printf("%d\n",index);
 	  addByteSlice(bt->root,&(td->Data[index]),td->Data+td->len);
 	  if(index % 50000 == 0 && index != 0){
 	       printf("collapsing\n");
 	       GeneDataSlice temp = collapseLeafs(bt->root);
 	       printf("trying to merge\n");
-	       bt->curHighest = mergeGeneDataSlice(temp,bt->curHighest );
+	      bt->curHighest = mergeGeneDataSlice(temp,bt->curHighest );
 	       printf("curHighest len:%d\n",bt->curHighest->len);
-	       PrintStats(bt->curHighest);
+	       //PrintStats(bt->curHighest);
 	       deleteLeafs(bt->root);
 	       CountedFree(bt->root);
 	       bt->root= newTree();

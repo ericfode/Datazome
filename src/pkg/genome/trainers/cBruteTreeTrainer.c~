@@ -2,6 +2,9 @@
 #include "stdio.h"
 #include "malloc.h"
 #include "string.h"
+#include "sys/types.h"
+
+#include "dirent.h"
 typedef struct genePart* GenePart;
 typedef struct geneData* GeneData;
 typedef struct geneNode* GeneNode;
@@ -11,10 +14,9 @@ typedef struct geneDataSlice* GeneDataSlice;
 typedef struct trainingData* TrainingData;
 typedef unsigned int uint;
 
-#define NextNodeBound 6
-#define MinLen 6
-#define MaxDepth 15
-#define Runs 5000
+#define NextNodeBound 2
+#define MaxDepth 6
+#define Runs 50000
 //used in tree
 struct genePart{
 	byte DataValue;
@@ -375,7 +377,6 @@ void deleteLeafs(GeneNode node){
 //byte is named b because in go a byte is also a byte and this byte is being used as a byte
 GeneNode addNode(GeneNode gn,byte b){
     // printf("testing next\n");
-     gn->GeneParts[b]->Next = 0;
     // printf("creating new tree for node\n");
      
      gn->GeneParts[b]->Next = newTree();
@@ -394,33 +395,29 @@ GeneNode addNode(GeneNode gn,byte b){
      return gn->GeneParts[b]->Next;
 }
 
-void addByteSlice(GeneNode gn, byte* b,byte* end) {
-     GeneNode curGN = gn;
-     uint counter = 0;
+void addByteSlice(GeneNode curGN, byte* b,byte* end) {
    //  printf("adding byte:%d\n",b[0]);
-     while(1){
-	  curGN->GeneParts[b[counter]]->HitNumber++;
+	  curGN->GeneParts[b[0]]->HitNumber++;
 	  curGN->HitNumber++;
-	//  printf("added byte.. hitnumber:%d\n",curGN->GeneParts[b[0]]->HitNumber);
-	  if( curGN->GeneParts[b[counter]]->HitNumber == NextNodeBound){
-//	       printf("adding node\n");
-	     curGN = addNode(curGN,b[counter]);
-	     
-	//      printf(" %d ",counter);
-	  //     printf("added node\n");
+	 //printf("added byte.. %d hitnumber:%d depth:%d\n",b[0],curGN->GeneParts[b[0]]->HitNumber,curGN->Depth);
+	 //if the hit number of the curGN is == to the NExt Node bound add a node;
+	  if( curGN->GeneParts[b[0]]->HitNumber == NextNodeBound){
+	    if (&b[0] < end && curGN->Depth < MaxDepth) {
+		//;
+	     addByteSlice(addNode(curGN,b[0]),&b[1],end);
+	    }
 	  }
-	  if(curGN->HitNumber < NextNodeBound){//  printf("finished addByteSlice\n");
+	
+	  else if( curGN->GeneParts[b[0]]->HitNumber > NextNodeBound) {
+		    if (&b[0] < end && curGN->Depth < MaxDepth) {
+		//	 printf("%d %d", curGN->Depth, curGN->GeneParts[b[0]]->HitNumber);
+			 addByteSlice(curGN->GeneParts[b[0]]->Next,&b[1],end);
+		    }
+	  }
+
+	  else if(curGN->GeneParts[b[0]]->HitNumber < NextNodeBound){//  printf("finished addByteSlice\n");
 	       return;
 	  }
-	  if( curGN->GeneParts[b[counter]]->Next != 0) {
-		    if (&b[counter] != end && curGN->Depth < MaxDepth) {
-			 curGN = curGN->GeneParts[b[counter]]->Next;
-			 counter++;
-			
-		    }
-	       }
-
-     }
 }
 
 void PrintStats(GeneDataSlice gd){
@@ -491,7 +488,7 @@ void BTTrain(BruteTreeTrainer bt, TrainingData td){
      return;
 }
 
-int main(){
+int basicMain(){
      printf("starting\n");
      BruteTreeTrainer btt = newBTT();
      TrainingData TD = newTD();
@@ -508,3 +505,41 @@ int main(){
      free(TD);
      return 1;
 }
+
+int main(){
+     BruteTreeTrainer btt = newBTT();
+     TrainingData TD = newTD();
+     DIR *dp;
+     struct dirent *ep;
+     FILE *pFile;
+     byte* buffer;
+     dp= opendir("/usr/bin");
+     long long int len;
+     if(dp== NULL)
+	  perror("could not open dir");
+     while(ep = readdir(dp)){
+	  if(ep->d_type == DT_REG)
+	  {
+	       char* firststr = CountedMalloc(strlen(ep->d_name) + 9);
+	       strcpy(firststr,"/usr/bin/");
+	       strcat(firststr,ep->d_name);
+	       printf("%s\n",firststr);
+	       printf("starting to open file");
+	       pFile = fopen(firststr,"r");
+	       if(pFile== NULL){
+		    perror("could not open file");
+	       }
+	       fseek (pFile,0,SEEK_END);
+	       len = ftell(pFile);
+	       rewind(pFile);
+	       TD->len = len;
+	       buffer = CountedMalloc(len);
+	       fread(buffer,1,len,pFile);
+	       TD->Data = buffer;
+	       BTTrain(btt,TD);
+	       CountedFree(buffer);
+	       CountedFree(firststr);
+	  }
+     }
+}
+	  

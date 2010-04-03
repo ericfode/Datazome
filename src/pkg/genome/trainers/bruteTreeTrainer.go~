@@ -27,7 +27,7 @@ type GeneNode struct {
 	DataValue byte
 	Depth     uint8
 	HitNumber uint32
-	GeneParts [256]GenePart
+	;GeneParts [256]GenePart
 }
 
 type BruteTreeTrainer struct {
@@ -209,12 +209,12 @@ func (gn *GeneNode) collapseLeafs() []GeneData {
 
 func (gn *GeneNode) deleteLeafs(root *GeneNode) {
 
-	for index, child := range (gn.GeneParts) {
+	for _, child := range (gn.GeneParts) {
 		//recurese this function down to its leaf
 		if child.Next != nil {
 			child.Next.deleteLeafs(root)
 			//!	fmt.Println("cumlitive geneData:", geneData)
-			gn.GeneParts[index].Next = nil
+			child.Next = nil
 		}
 	}
 	return

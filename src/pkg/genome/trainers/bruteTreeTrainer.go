@@ -209,7 +209,7 @@ func (gn *GeneNode) collapseLeafs() []GeneData {
 
 func (gn *GeneNode) deleteLeafs(root *GeneNode) {
 
-	for index, child := range (gn.GeneParts) {
+	for _, child := range (gn.GeneParts) {
 		//recurese this function down to its leaf
 		if child.Next != nil {
 			child.Next.deleteLeafs(root)

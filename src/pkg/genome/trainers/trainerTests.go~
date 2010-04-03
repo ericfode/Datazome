@@ -12,13 +12,19 @@ func main() {
 	treeTrainer()
 }
 /* func bruteTrainer(){
- 	train := trainers.NewBruteTrainer()
- 	train.TrainOnDirPart("/usr/bin", 100)
- 	train.GetGenes()
+	train := trainers.NewBruteTrainer()
+	train.TrainOnDirPart("/usr/bin", 100)
+	train.GetGenes()
 
- }*/
- func treeTrainer() {
- 	train := trainers.NewBruteTreeTrainer()
- 	train.TrainOnDirPart("/usr/bin", 300)
- 	train.Output()
 }
+func treeTrainer() {
+	train := trainers.NewBruteTreeTrainer()
+	train.TrainOnDirPart("/usr/bin", 100)
+	train.Output()
+}
+*/
+func cTreeTrainer() {
+      train := trainers.NewCTrainer()
+      train.massTrain();
+}
+     

@@ -1,15 +1,15 @@
-all:trainers.a
 
-trainers.8: bruteTreeTrainer.go bruteTrainer.go
-	8g -I ../../../../lib -o trainers.8 bruteTreeTrainer.go bruteTrainer.go
+include $(GOROOT)/src/Make.$(GOARCH)
 
-../../../../lib/genome/trainers.a: trainers.8 
-	gopack gru ../../../../lib/genome/trainers.a trainers.8
+PKGDIR=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)
 
-clean:
-	-rm *.8
-	-rm ../../../../lib/genome/trainers.a
+TARG=trainers
+CGOFILES=cBruteTreeTrainer.go
 
-test: clean ../../../../lib/genome/trainers.a
-	8g -I ../../../../lib trainerTests.go
-	8l -o trainerTester trainerTests.8
+include $(GOROOT)/src/Make.pkg
+
+CLEANFILES+=main $(PKGDIR)/$(TARG).a
+
+main: install main.go
+     $(GC) main.go
+     $(LD) -o $@ main.$O

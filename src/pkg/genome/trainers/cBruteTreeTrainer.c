@@ -1,22 +1,5 @@
-#include "stdlib.h"
-#include "stdio.h"
-#include "malloc.h"
-#include "string.h"
-#include "sys/types.h"
+#include "cBruteTreeTrainer.h"
 
-#include "dirent.h"
-typedef struct genePart* GenePart;
-typedef struct geneData* GeneData;
-typedef struct geneNode* GeneNode;
-typedef u_char byte;
-typedef struct bruteTreeTrainer* BruteTreeTrainer;
-typedef struct geneDataSlice* GeneDataSlice;
-typedef struct trainingData* TrainingData;
-typedef unsigned int uint;
-
-#define NextNodeBound 2
-#define MaxDepth 6
-#define Runs 50000
 //used in tree
 struct genePart{
 	byte DataValue;
@@ -256,7 +239,7 @@ GeneDataSlice mergeGeneDataSlice(GeneDataSlice right, GeneDataSlice left) {
 	       }
 	  }
      }
-    printf("%d Dups\n",dups);
+    //printf("%d Dups\n",dups);
     
     
      GeneDataSlice GDS = newGDS((right->len+left->len) -dups);
@@ -324,6 +307,7 @@ GeneDataSlice collapseLeafs(GeneNode gn) {
 	  (GDS->Data[0])->HitNumber = gn->HitNumber;
 	 // printf("got hitnumber\n");
 	  
+
 	 // printf("created GeneData\n");
 	  GDS->Data[0]->DataValue[gn->Depth-1] = gn->DataValue;
 	  return GDS;
@@ -399,7 +383,7 @@ void addByteSlice(GeneNode curGN, byte* b,byte* end) {
    //  printf("adding byte:%d\n",b[0]);
 	  curGN->GeneParts[b[0]]->HitNumber++;
 	  curGN->HitNumber++;
-	 //printf("added byte.. %d hitnumber:%d depth:%d\n",b[0],curGN->GeneParts[b[0]]->HitNumber,curGN->Depth);
+	// printf("added byte.. %d hitnumber:%d depth:%d\n",b[0],curGN->GeneParts[b[0]]->HitNumber,curGN->Depth);
 	 //if the hit number of the curGN is == to the NExt Node bound add a node;
 	  if( curGN->GeneParts[b[0]]->HitNumber == NextNodeBound){
 	    if (&b[0] < end && curGN->Depth < MaxDepth) {
@@ -408,7 +392,7 @@ void addByteSlice(GeneNode curGN, byte* b,byte* end) {
 	    }
 	  }
 	
-	  else if( curGN->GeneParts[b[0]]->HitNumber > NextNodeBound) {
+	  else if( curGN->GeneParts[b[0]]->Next != 0) {
 		    if (&b[0] < end && curGN->Depth < MaxDepth) {
 		//	 printf("%d %d", curGN->Depth, curGN->GeneParts[b[0]]->HitNumber);
 			 addByteSlice(curGN->GeneParts[b[0]]->Next,&b[1],end);
@@ -421,7 +405,7 @@ void addByteSlice(GeneNode curGN, byte* b,byte* end) {
 }
 
 void PrintStats(GeneDataSlice gd){
-     printf("working on stats\n");
+   //  printf("working on stats\n");
      float avarageLen = 0;
      int maxLen = 0;
      int minLen = 500000;
@@ -488,26 +472,21 @@ void BTTrain(BruteTreeTrainer bt, TrainingData td){
      return;
 }
 
-int basicMain(){
+//must have called new BTT befor using
+void byteMain(byte* TDBytes,uint len){
      printf("starting\n");
-     BruteTreeTrainer btt = newBTT();
      TrainingData TD = newTD();
+     TD->bytes = TDBytes;
+     TD->len = len;
      printf("created btt an td\n");
-     TD->Data = malloc(sizeof(byte)*60 *1000000);
-     TD->len = 60 *1000000;
-     int index =0;
-     for(index =0; index < TD->len; index++){
-	  TD->Data[index] = (byte)rand();
-     }
-     printf("made really big td\n");
-     BTTrain(btt, TD);
+     BTTrain(state, TD);
      free(TD->Data);
      free(TD);
      return 1;
 }
 
-int main(){
-     BruteTreeTrainer btt = newBTT();
+//must have called new newBTT befor using 
+int massTrain(){
      TrainingData TD = newTD();
      DIR *dp;
      struct dirent *ep;
@@ -533,10 +512,10 @@ int main(){
 	       len = ftell(pFile);
 	       rewind(pFile);
 	       TD->len = len;
-	       buffer = CountedMalloc(len+1);
+	       buffer = CountedMalloc(len);
 	       fread(buffer,1,len,pFile);
 	       TD->Data = buffer;
-	       BTTrain(btt,TD);
+	       BTTrain(state,TD);
 	       CountedFree(buffer);
 	       CountedFree(firststr);
 	  }
